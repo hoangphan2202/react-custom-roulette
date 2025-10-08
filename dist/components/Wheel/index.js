@@ -51,7 +51,7 @@ export var Wheel = function (_a) {
     var stopSpinningTime = STOP_SPINNING_TIME * normalizedSpinDuration;
     var totalSpinningTime = startSpinningTime + continueSpinningTime + stopSpinningTime;
     useEffect(function () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         var initialMapNum = 0;
         var auxPrizeMap = [];
         var dataLength = (data === null || data === void 0 ? void 0 : data.length) || 0;
@@ -93,6 +93,21 @@ export var Wheel = function (_a) {
                         sizeMultiplier: ((_f = data[i].image) === null || _f === void 0 ? void 0 : _f.sizeMultiplier) || 1,
                         _imageHTML: img_1,
                     };
+                    setLoadedImagesCounter(function (prevCounter) { return prevCounter + 1; });
+                    setRouletteUpdater(function (prevState) { return !prevState; });
+                };
+            }
+            // Load background image if specified
+            if ((_m = (_l = data[i].style) === null || _l === void 0 ? void 0 : _l.backgroundImage) === null || _m === void 0 ? void 0 : _m.uri) {
+                setTotalImages(function (prevCounter) { return prevCounter + 1; });
+                var bgImg_1 = new Image();
+                bgImg_1.src = ((_p = (_o = data[i].style) === null || _o === void 0 ? void 0 : _o.backgroundImage) === null || _p === void 0 ? void 0 : _p.uri) || '';
+                bgImg_1.onload = function () {
+                    var _a, _b;
+                    wheelDataAux[i].style = __assign(__assign({}, wheelDataAux[i].style), { backgroundImage: {
+                            uri: ((_b = (_a = data[i].style) === null || _a === void 0 ? void 0 : _a.backgroundImage) === null || _b === void 0 ? void 0 : _b.uri) || '',
+                            _imageHTML: bgImg_1,
+                        } });
                     setLoadedImagesCounter(function (prevCounter) { return prevCounter + 1; });
                     setRouletteUpdater(function (prevState) { return !prevState; });
                 };
@@ -180,6 +195,15 @@ export var Wheel = function (_a) {
             ? { visibility: 'hidden' }
             : {} },
         React.createElement(RotationContainer, { className: getRouletteClass(), classKey: classKey, startSpinningTime: startSpinningTime, continueSpinningTime: continueSpinningTime, stopSpinningTime: stopSpinningTime, startRotationDegrees: startRotationDegrees, finalRotationDegrees: finalRotationDegrees, disableInitialAnimation: disableInitialAnimation },
+            React.createElement("img", { src: "/bg-rewards.png", alt: "bg", style: {
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 1,
+                    transform: 'scale(1.15)',
+                } }),
             React.createElement(WheelCanvas, { width: "900", height: "900", data: wheelData, outerBorderColor: outerBorderColor, outerBorderWidth: outerBorderWidth, innerRadius: innerRadius, innerBorderColor: innerBorderColor, innerBorderWidth: innerBorderWidth, radiusLineColor: radiusLineColor, radiusLineWidth: radiusLineWidth, fontFamily: fontFamily, fontWeight: fontWeight, fontStyle: fontStyle, fontSize: fontSize, perpendicularText: perpendicularText, prizeMap: prizeMap, rouletteUpdater: rouletteUpdater, textDistance: textDistance })),
         React.createElement(RoulettePointerImage, { style: pointerProps === null || pointerProps === void 0 ? void 0 : pointerProps.style, src: (pointerProps === null || pointerProps === void 0 ? void 0 : pointerProps.src) || roulettePointer.src, alt: "roulette-static" })));
 };

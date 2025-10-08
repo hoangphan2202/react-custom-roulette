@@ -3,5 +3,5 @@ var __makeTemplateObject = (this && this.__makeTemplateObject) || function (cook
     return cooked;
 };
 import styled from 'styled-components';
-export var WheelCanvasStyle = styled.canvas(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  width: 98%;\n  height: 98%;\n"], ["\n  width: 98%;\n  height: 98%;\n"])));
+export var WheelCanvasStyle = styled.canvas(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  width: 98%;\n  height: 98%;\n  z-index: 2;\n"], ["\n  width: 98%;\n  height: 98%;\n  z-index: 2;\n"])));
 var templateObject_1;

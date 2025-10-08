@@ -2,6 +2,10 @@
 interface ImagePropsLocal extends ImageProps {
     _imageHTML?: HTMLImageElement;
 }
+interface BackgroundImageProps {
+    uri: string;
+    _imageHTML?: HTMLImageElement;
+}
 export interface WheelData {
     image?: ImagePropsLocal;
     option?: string;
@@ -10,6 +14,7 @@ export interface WheelData {
 }
 export interface StyleType {
     backgroundColor?: string;
+    backgroundImage?: BackgroundImageProps;
     textColor?: string;
     fontFamily?: string;
     fontSize?: number;

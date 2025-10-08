@@ -1,6 +1,6 @@
 import React, { createRef, useEffect } from 'react';
 import { WheelCanvasStyle } from './styles';
-import { clamp, getQuantity } from '../../utils';
+import { clamp, getQuantity, parseLinearGradient, createCanvasGradient, } from '../../utils';
 var drawRadialBorder = function (ctx, centerX, centerY, insideRadius, outsideRadius, angle) {
     ctx.beginPath();
     ctx.moveTo(centerX + (insideRadius + 1) * Math.cos(angle), centerY + (insideRadius + 1) * Math.sin(angle));
@@ -35,7 +35,25 @@ var drawWheel = function (canvasRef, data, drawWheelProps) {
             var arc = (optionSize && (optionSize * (2 * Math.PI)) / QUANTITY) ||
                 (2 * Math.PI) / QUANTITY;
             var endAngle = startAngle + arc;
-            ctx.fillStyle = (style && style.backgroundColor);
+            // Handle background image, gradient or solid color
+            var backgroundColor = (style && style.backgroundColor) || '';
+            var backgroundImage = (_a = style === null || style === void 0 ? void 0 : style.backgroundImage) === null || _a === void 0 ? void 0 : _a._imageHTML;
+            var gradientInfo = parseLinearGradient(backgroundColor);
+            if (backgroundImage) {
+                // Use background image as pattern
+                var pattern = ctx.createPattern(backgroundImage, 'repeat');
+                ctx.fillStyle = pattern || backgroundColor;
+            }
+            else if (gradientInfo) {
+                // Calculate the center of the current segment for gradient
+                var segmentCenterAngle = startAngle + arc / 2;
+                var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
+                var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
+                ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
+            }
+            else {
+                ctx.fillStyle = backgroundColor;
+            }
             ctx.beginPath();
             ctx.arc(centerX, centerY, outsideRadius, startAngle, endAngle, false);
             ctx.arc(centerX, centerY, insideRadius, endAngle, startAngle, true);
@@ -71,12 +89,17 @@ var drawWheel = function (canvasRef, data, drawWheelProps) {
             if (data[i].image) {
                 // CASE IMAGE
                 contentRotationAngle +=
-                    data[i].image && !((_a = data[i].image) === null || _a === void 0 ? void 0 : _a.landscape) ? Math.PI / 2 : 0;
+                    data[i].image && !((_b = data[i].image) === null || _b === void 0 ? void 0 : _b.landscape) ? Math.PI / 2 : 0;
                 ctx.rotate(contentRotationAngle);
-                var img = ((_b = data[i].image) === null || _b === void 0 ? void 0 : _b._imageHTML) || new Image();
-                ctx.drawImage(img, (img.width + (((_c = data[i].image) === null || _c === void 0 ? void 0 : _c.offsetX) || 0)) / -2, -(img.height -
-                    (((_d = data[i].image) === null || _d === void 0 ? void 0 : _d.landscape) ? 0 : 90) + // offsetY correction for non landscape images
-                    (((_e = data[i].image) === null || _e === void 0 ? void 0 : _e.offsetY) || 0)) / 2, img.width, img.height);
+                var img = ((_c = data[i].image) === null || _c === void 0 ? void 0 : _c._imageHTML) || new Image();
+                // Calculate appropriate image size based on segment width
+                var segmentWidth = 2 * Math.PI * contentRadius * (arc / (2 * Math.PI));
+                var maxImageSize = Math.min(segmentWidth * 0.6, (outsideRadius - insideRadius) * 0.5);
+                // Scale image to fit
+                var scale = Math.min(maxImageSize / img.width, maxImageSize / img.height);
+                var scaledWidth = img.width * scale;
+                var scaledHeight = img.height * scale;
+                ctx.drawImage(img, (-scaledWidth + (((_d = data[i].image) === null || _d === void 0 ? void 0 : _d.offsetX) || 0)) / 2, (-scaledHeight + (((_e = data[i].image) === null || _e === void 0 ? void 0 : _e.offsetY) || 0)) / 2, scaledWidth, scaledHeight);
             }
             else {
                 // CASE TEXT
@@ -90,6 +113,31 @@ var drawWheel = function (canvasRef, data, drawWheelProps) {
             ctx.restore();
             startAngle = endAngle;
         }
+        // INNER HIGHLIGHT BORDER (vẽ sau cùng, vòng border sáng bên trong)
+        var innerHighlightBorderWidth = 8;
+        var innerHighlightRadius = outsideRadius * 0.92; // Điều chỉnh vị trí border
+        ctx.strokeStyle = '#383EE480';
+        ctx.lineWidth = innerHighlightBorderWidth;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, innerHighlightRadius, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.stroke();
+        var innerHighlightBorderWidth2 = 15;
+        var innerHighlightRadius2 = outsideRadius * 0.95; // Điều chỉnh vị trí border
+        ctx.strokeStyle = '#FFFFFF66';
+        ctx.lineWidth = innerHighlightBorderWidth2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, innerHighlightRadius2, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.stroke();
+        var innerHighlightBorderWidth3 = 20;
+        var innerHighlightRadius3 = outsideRadius * 0.99; // Điều chỉnh vị trí border
+        ctx.strokeStyle = '#FFFFFF80';
+        ctx.lineWidth = innerHighlightBorderWidth3;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, innerHighlightRadius3, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.stroke();
     }
 };
 var WheelCanvas = function (_a) {
