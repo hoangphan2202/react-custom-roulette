@@ -39,26 +39,74 @@ var drawWheel = function (canvasRef, data, drawWheelProps) {
             var backgroundColor = (style && style.backgroundColor) || '';
             var backgroundImage = (_a = style === null || style === void 0 ? void 0 : style.backgroundImage) === null || _a === void 0 ? void 0 : _a._imageHTML;
             var gradientInfo = parseLinearGradient(backgroundColor);
-            if (backgroundImage) {
-                // Use background image as pattern
-                var pattern = ctx.createPattern(backgroundImage, 'repeat');
-                ctx.fillStyle = pattern || backgroundColor;
+            // Draw the segment path
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, outsideRadius, startAngle, endAngle, false);
+            ctx.arc(centerX, centerY, insideRadius, endAngle, startAngle, true);
+            ctx.closePath();
+            if (backgroundImage &&
+                backgroundImage.complete &&
+                backgroundImage.naturalWidth > 0) {
+                // Verify image is loaded and create pattern
+                try {
+                    var pattern = ctx.createPattern(backgroundImage, 'repeat');
+                    if (pattern) {
+                        ctx.fillStyle = pattern;
+                        ctx.fill();
+                        // Overlay gradient with transparency if both exist
+                        if (gradientInfo) {
+                            ctx.globalAlpha = 0.7;
+                            var segmentCenterAngle = startAngle + arc / 2;
+                            var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
+                            var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
+                            ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
+                            ctx.fill();
+                            ctx.globalAlpha = 1.0;
+                        }
+                    }
+                    else {
+                        // Pattern creation failed, use background color
+                        if (gradientInfo) {
+                            var segmentCenterAngle = startAngle + arc / 2;
+                            var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
+                            var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
+                            ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
+                        }
+                        else {
+                            ctx.fillStyle = backgroundColor;
+                        }
+                        ctx.fill();
+                    }
+                }
+                catch (e) {
+                    // Error creating pattern, fallback to background color
+                    console.warn('Error creating canvas pattern:', e);
+                    if (gradientInfo) {
+                        var segmentCenterAngle = startAngle + arc / 2;
+                        var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
+                        var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
+                        ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
+                    }
+                    else {
+                        ctx.fillStyle = backgroundColor;
+                    }
+                    ctx.fill();
+                }
             }
             else if (gradientInfo) {
-                // Calculate the center of the current segment for gradient
+                // Use gradient
                 var segmentCenterAngle = startAngle + arc / 2;
                 var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
                 var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
                 ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
+                ctx.fill();
             }
             else {
+                // Use solid color
                 ctx.fillStyle = backgroundColor;
+                ctx.fill();
             }
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, outsideRadius, startAngle, endAngle, false);
-            ctx.arc(centerX, centerY, insideRadius, endAngle, startAngle, true);
             ctx.stroke();
-            ctx.fill();
             ctx.save();
             // WHEEL RADIUS LINES
             ctx.strokeStyle = radiusLineWidth <= 0 ? 'transparent' : radiusLineColor;

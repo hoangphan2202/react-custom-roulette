@@ -80,6 +80,7 @@ export var Wheel = function (_a) {
             if (data[i].image) {
                 setTotalImages(function (prevCounter) { return prevCounter + 1; });
                 var img_1 = new Image();
+                img_1.crossOrigin = 'anonymous'; // Enable CORS for webview compatibility
                 img_1.src = ((_k = data[i].image) === null || _k === void 0 ? void 0 : _k.uri) || '';
                 img_1.onload = function () {
                     var _a, _b, _c, _d, _e, _f;
@@ -96,11 +97,18 @@ export var Wheel = function (_a) {
                     setLoadedImagesCounter(function (prevCounter) { return prevCounter + 1; });
                     setRouletteUpdater(function (prevState) { return !prevState; });
                 };
+                img_1.onerror = function (err) {
+                    var _a;
+                    console.error('Failed to load content image:', (_a = data[i].image) === null || _a === void 0 ? void 0 : _a.uri, err);
+                    setLoadedImagesCounter(function (prevCounter) { return prevCounter + 1; });
+                    setRouletteUpdater(function (prevState) { return !prevState; });
+                };
             }
             // Load background image if specified
             if ((_m = (_l = data[i].style) === null || _l === void 0 ? void 0 : _l.backgroundImage) === null || _m === void 0 ? void 0 : _m.uri) {
                 setTotalImages(function (prevCounter) { return prevCounter + 1; });
                 var bgImg_1 = new Image();
+                bgImg_1.crossOrigin = 'anonymous'; // Enable CORS for webview compatibility
                 bgImg_1.src = ((_p = (_o = data[i].style) === null || _o === void 0 ? void 0 : _o.backgroundImage) === null || _p === void 0 ? void 0 : _p.uri) || '';
                 bgImg_1.onload = function () {
                     var _a, _b;
@@ -108,6 +116,12 @@ export var Wheel = function (_a) {
                             uri: ((_b = (_a = data[i].style) === null || _a === void 0 ? void 0 : _a.backgroundImage) === null || _b === void 0 ? void 0 : _b.uri) || '',
                             _imageHTML: bgImg_1,
                         } });
+                    setLoadedImagesCounter(function (prevCounter) { return prevCounter + 1; });
+                    setRouletteUpdater(function (prevState) { return !prevState; });
+                };
+                bgImg_1.onerror = function (err) {
+                    var _a, _b;
+                    console.error('Failed to load background image:', (_b = (_a = data[i].style) === null || _a === void 0 ? void 0 : _a.backgroundImage) === null || _b === void 0 ? void 0 : _b.uri, err);
                     setLoadedImagesCounter(function (prevCounter) { return prevCounter + 1; });
                     setRouletteUpdater(function (prevState) { return !prevState; });
                 };

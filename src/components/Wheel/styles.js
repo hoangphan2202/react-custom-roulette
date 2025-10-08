@@ -12,6 +12,8 @@ export const RouletteContainer = styled.div`
   flex-shrink: 0;
   z-index: 5;
   pointer-events: none;
+  overflow: hidden;
+  border-radius: 100%;
 `;
 
 export const RotationContainer = styled.div`

@@ -159,6 +159,7 @@ export const Wheel = ({
         setTotalImages(prevCounter => prevCounter + 1);
 
         const img = new Image();
+        img.crossOrigin = 'anonymous'; // Enable CORS for webview compatibility
         img.src = data[i].image?.uri || '';
         img.onload = () => {
           img.height = 200 * (data[i].image?.sizeMultiplier || 1);
@@ -174,6 +175,15 @@ export const Wheel = ({
           setLoadedImagesCounter(prevCounter => prevCounter + 1);
           setRouletteUpdater(prevState => !prevState);
         };
+        img.onerror = err => {
+          console.error(
+            'Failed to load content image:',
+            data[i].image?.uri,
+            err
+          );
+          setLoadedImagesCounter(prevCounter => prevCounter + 1);
+          setRouletteUpdater(prevState => !prevState);
+        };
       }
 
       // Load background image if specified
@@ -181,6 +191,7 @@ export const Wheel = ({
         setTotalImages(prevCounter => prevCounter + 1);
 
         const bgImg = new Image();
+        bgImg.crossOrigin = 'anonymous'; // Enable CORS for webview compatibility
         bgImg.src = data[i].style?.backgroundImage?.uri || '';
         bgImg.onload = () => {
           wheelDataAux[i].style = {
@@ -190,6 +201,15 @@ export const Wheel = ({
               _imageHTML: bgImg,
             },
           };
+          setLoadedImagesCounter(prevCounter => prevCounter + 1);
+          setRouletteUpdater(prevState => !prevState);
+        };
+        bgImg.onerror = err => {
+          console.error(
+            'Failed to load background image:',
+            data[i].style?.backgroundImage?.uri,
+            err
+          );
           setLoadedImagesCounter(prevCounter => prevCounter + 1);
           setRouletteUpdater(prevState => !prevState);
         };
