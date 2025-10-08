@@ -59,7 +59,7 @@ interface Props {
   startingOptionIndex?: number;
   pointerProps?: PointerProps;
   disableInitialAnimation?: boolean;
-  backgroundImage?: string;
+  bg
 }
 
 const STARTED_SPINNING = 'started-spinning';
@@ -92,7 +92,6 @@ export const Wheel = ({
   startingOptionIndex = -1,
   pointerProps = {},
   disableInitialAnimation = DISABLE_INITIAL_ANIMATION,
-  backgroundImage = '',
 }: Props): JSX.Element | null => {
   const [wheelData, setWheelData] = useState<WheelData[]>([...data]);
   const [prizeMap, setPrizeMap] = useState<number[][]>([[0]]);
@@ -303,7 +302,7 @@ export const Wheel = ({
         disableInitialAnimation={disableInitialAnimation}
       >
         <img
-          src={backgroundImage}
+          src="/bg-rewards.png"
           alt="bg"
           style={{
             position: 'absolute',

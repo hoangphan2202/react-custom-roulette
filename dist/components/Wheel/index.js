@@ -30,19 +30,19 @@ var START_SPINNING_TIME = 2600;
 var CONTINUE_SPINNING_TIME = 750;
 var STOP_SPINNING_TIME = 8000;
 export var Wheel = function (_a) {
-    var mustStartSpinning = _a.mustStartSpinning, prizeNumber = _a.prizeNumber, data = _a.data, _b = _a.onStopSpinning, onStopSpinning = _b === void 0 ? function () { return null; } : _b, _c = _a.backgroundColors, backgroundColors = _c === void 0 ? DEFAULT_BACKGROUND_COLORS : _c, _d = _a.textColors, textColors = _d === void 0 ? DEFAULT_TEXT_COLORS : _d, _e = _a.outerBorderColor, outerBorderColor = _e === void 0 ? DEFAULT_OUTER_BORDER_COLOR : _e, _f = _a.outerBorderWidth, outerBorderWidth = _f === void 0 ? DEFAULT_OUTER_BORDER_WIDTH : _f, _g = _a.innerRadius, innerRadius = _g === void 0 ? DEFAULT_INNER_RADIUS : _g, _h = _a.innerBorderColor, innerBorderColor = _h === void 0 ? DEFAULT_INNER_BORDER_COLOR : _h, _j = _a.innerBorderWidth, innerBorderWidth = _j === void 0 ? DEFAULT_INNER_BORDER_WIDTH : _j, _k = _a.radiusLineColor, radiusLineColor = _k === void 0 ? DEFAULT_RADIUS_LINE_COLOR : _k, _l = _a.radiusLineWidth, radiusLineWidth = _l === void 0 ? DEFAULT_RADIUS_LINE_WIDTH : _l, _m = _a.fontFamily, fontFamily = _m === void 0 ? WEB_FONTS[0] : _m, _o = _a.fontSize, fontSize = _o === void 0 ? DEFAULT_FONT_SIZE : _o, _p = _a.fontWeight, fontWeight = _p === void 0 ? DEFAULT_FONT_WEIGHT : _p, _q = _a.fontStyle, fontStyle = _q === void 0 ? DEFAULT_FONT_STYLE : _q, _r = _a.perpendicularText, perpendicularText = _r === void 0 ? false : _r, _s = _a.textDistance, textDistance = _s === void 0 ? DEFAULT_TEXT_DISTANCE : _s, _t = _a.spinDuration, spinDuration = _t === void 0 ? DEFAULT_SPIN_DURATION : _t, _u = _a.startingOptionIndex, startingOptionIndex = _u === void 0 ? -1 : _u, _v = _a.pointerProps, pointerProps = _v === void 0 ? {} : _v, _w = _a.disableInitialAnimation, disableInitialAnimation = _w === void 0 ? DISABLE_INITIAL_ANIMATION : _w;
-    var _x = useState(__spreadArray([], data, true)), wheelData = _x[0], setWheelData = _x[1];
-    var _y = useState([[0]]), prizeMap = _y[0], setPrizeMap = _y[1];
-    var _z = useState(0), startRotationDegrees = _z[0], setStartRotationDegrees = _z[1];
-    var _0 = useState(0), finalRotationDegrees = _0[0], setFinalRotationDegrees = _0[1];
-    var _1 = useState(false), hasStartedSpinning = _1[0], setHasStartedSpinning = _1[1];
-    var _2 = useState(false), hasStoppedSpinning = _2[0], setHasStoppedSpinning = _2[1];
-    var _3 = useState(false), isCurrentlySpinning = _3[0], setIsCurrentlySpinning = _3[1];
-    var _4 = useState(false), isDataUpdated = _4[0], setIsDataUpdated = _4[1];
-    var _5 = useState(false), rouletteUpdater = _5[0], setRouletteUpdater = _5[1];
-    var _6 = useState(0), loadedImagesCounter = _6[0], setLoadedImagesCounter = _6[1];
-    var _7 = useState(0), totalImages = _7[0], setTotalImages = _7[1];
-    var _8 = useState(false), isFontLoaded = _8[0], setIsFontLoaded = _8[1];
+    var mustStartSpinning = _a.mustStartSpinning, prizeNumber = _a.prizeNumber, data = _a.data, _b = _a.onStopSpinning, onStopSpinning = _b === void 0 ? function () { return null; } : _b, _c = _a.backgroundColors, backgroundColors = _c === void 0 ? DEFAULT_BACKGROUND_COLORS : _c, _d = _a.textColors, textColors = _d === void 0 ? DEFAULT_TEXT_COLORS : _d, _e = _a.outerBorderColor, outerBorderColor = _e === void 0 ? DEFAULT_OUTER_BORDER_COLOR : _e, _f = _a.outerBorderWidth, outerBorderWidth = _f === void 0 ? DEFAULT_OUTER_BORDER_WIDTH : _f, _g = _a.innerRadius, innerRadius = _g === void 0 ? DEFAULT_INNER_RADIUS : _g, _h = _a.innerBorderColor, innerBorderColor = _h === void 0 ? DEFAULT_INNER_BORDER_COLOR : _h, _j = _a.innerBorderWidth, innerBorderWidth = _j === void 0 ? DEFAULT_INNER_BORDER_WIDTH : _j, _k = _a.radiusLineColor, radiusLineColor = _k === void 0 ? DEFAULT_RADIUS_LINE_COLOR : _k, _l = _a.radiusLineWidth, radiusLineWidth = _l === void 0 ? DEFAULT_RADIUS_LINE_WIDTH : _l, _m = _a.fontFamily, fontFamily = _m === void 0 ? WEB_FONTS[0] : _m, _o = _a.fontSize, fontSize = _o === void 0 ? DEFAULT_FONT_SIZE : _o, _p = _a.fontWeight, fontWeight = _p === void 0 ? DEFAULT_FONT_WEIGHT : _p, _q = _a.fontStyle, fontStyle = _q === void 0 ? DEFAULT_FONT_STYLE : _q, _r = _a.perpendicularText, perpendicularText = _r === void 0 ? false : _r, _s = _a.textDistance, textDistance = _s === void 0 ? DEFAULT_TEXT_DISTANCE : _s, _t = _a.spinDuration, spinDuration = _t === void 0 ? DEFAULT_SPIN_DURATION : _t, _u = _a.startingOptionIndex, startingOptionIndex = _u === void 0 ? -1 : _u, _v = _a.pointerProps, pointerProps = _v === void 0 ? {} : _v, _w = _a.disableInitialAnimation, disableInitialAnimation = _w === void 0 ? DISABLE_INITIAL_ANIMATION : _w, _x = _a.backgroundImage, backgroundImage = _x === void 0 ? '' : _x;
+    var _y = useState(__spreadArray([], data, true)), wheelData = _y[0], setWheelData = _y[1];
+    var _z = useState([[0]]), prizeMap = _z[0], setPrizeMap = _z[1];
+    var _0 = useState(0), startRotationDegrees = _0[0], setStartRotationDegrees = _0[1];
+    var _1 = useState(0), finalRotationDegrees = _1[0], setFinalRotationDegrees = _1[1];
+    var _2 = useState(false), hasStartedSpinning = _2[0], setHasStartedSpinning = _2[1];
+    var _3 = useState(false), hasStoppedSpinning = _3[0], setHasStoppedSpinning = _3[1];
+    var _4 = useState(false), isCurrentlySpinning = _4[0], setIsCurrentlySpinning = _4[1];
+    var _5 = useState(false), isDataUpdated = _5[0], setIsDataUpdated = _5[1];
+    var _6 = useState(false), rouletteUpdater = _6[0], setRouletteUpdater = _6[1];
+    var _7 = useState(0), loadedImagesCounter = _7[0], setLoadedImagesCounter = _7[1];
+    var _8 = useState(0), totalImages = _8[0], setTotalImages = _8[1];
+    var _9 = useState(false), isFontLoaded = _9[0], setIsFontLoaded = _9[1];
     var mustStopSpinning = useRef(false);
     var classKey = makeClassKey(5);
     var normalizedSpinDuration = Math.max(0.01, spinDuration);
@@ -195,7 +195,7 @@ export var Wheel = function (_a) {
             ? { visibility: 'hidden' }
             : {} },
         React.createElement(RotationContainer, { className: getRouletteClass(), classKey: classKey, startSpinningTime: startSpinningTime, continueSpinningTime: continueSpinningTime, stopSpinningTime: stopSpinningTime, startRotationDegrees: startRotationDegrees, finalRotationDegrees: finalRotationDegrees, disableInitialAnimation: disableInitialAnimation },
-            React.createElement("img", { src: "/bg-rewards.png", alt: "bg", style: {
+            React.createElement("img", { src: backgroundImage, alt: "bg", style: {
                     position: 'absolute',
                     top: 0,
                     left: 0,

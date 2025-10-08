@@ -303,7 +303,7 @@ export const Wheel = ({
         disableInitialAnimation={disableInitialAnimation}
       >
         <img
-          src={backgroundImage}
+          src="/bg-rewards.png"
           alt="bg"
           style={{
             position: 'absolute',
