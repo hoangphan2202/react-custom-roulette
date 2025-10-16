@@ -80,7 +80,6 @@ export var Wheel = function (_a) {
             if (data[i].image) {
                 setTotalImages(function (prevCounter) { return prevCounter + 1; });
                 var img_1 = new Image();
-                img_1.crossOrigin = 'anonymous'; // Enable CORS for webview compatibility
                 img_1.src = ((_k = data[i].image) === null || _k === void 0 ? void 0 : _k.uri) || '';
                 img_1.onload = function () {
                     var _a, _b, _c, _d, _e, _f;

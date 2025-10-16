@@ -5,7 +5,10 @@ import { Wheel } from '../../src/index';
 
 const rewards = [
   {
-    image: { uri: '/rewards.png' },
+    image: {
+      uri:
+        'https://pub-29f61bf3542f48869c755cbe42259cf8.r2.dev/spin-items/luvi5.svg',
+    },
     style: {
       backgroundColor:
         'linear-gradient(153deg, #FFA124 12.53%, #FFE48C 84.02%)',

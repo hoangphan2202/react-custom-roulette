@@ -159,7 +159,6 @@ export const Wheel = ({
         setTotalImages(prevCounter => prevCounter + 1);
 
         const img = new Image();
-        img.crossOrigin = 'anonymous'; // Enable CORS for webview compatibility
         img.src = data[i].image?.uri || '';
         img.onload = () => {
           img.height = 200 * (data[i].image?.sizeMultiplier || 1);
