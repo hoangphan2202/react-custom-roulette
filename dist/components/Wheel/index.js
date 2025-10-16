@@ -193,10 +193,6 @@ export var Wheel = function (_a) {
             setIsCurrentlySpinning(true);
             var selectedPrize = prizeMap[prizeNumber][Math.floor(Math.random() * ((_a = prizeMap[prizeNumber]) === null || _a === void 0 ? void 0 : _a.length))];
             var finalRotationDegreesCalculated = getRotationDegrees(selectedPrize, getQuantity(prizeMap));
-            console.log('Starting spin:');
-            console.log('  Current startRotationDegrees:', startRotationDegrees);
-            console.log('  New finalRotationDegrees:', finalRotationDegreesCalculated);
-            console.log('  Animation will go from:', startRotationDegrees, 'to:', 1440 + finalRotationDegreesCalculated);
             // Set final rotation and generate new classKey
             setFinalRotationDegrees(finalRotationDegreesCalculated);
             setClassKey(makeClassKey(5));
@@ -215,7 +211,6 @@ export var Wheel = function (_a) {
             // This ensures next spin always starts from a "small" angle
             setTimeout(function () {
                 var normalizedDegrees = ((finalAnimationDegrees_1 % 360) + 360) % 360;
-                console.log('Normalizing rotation from', finalAnimationDegrees_1, 'to', normalizedDegrees);
                 setStartRotationDegrees(normalizedDegrees);
             }, 100);
         }

@@ -289,19 +289,6 @@ export const Wheel = ({
         getQuantity(prizeMap)
       );
 
-      console.log('Starting spin:');
-      console.log('  Current startRotationDegrees:', startRotationDegrees);
-      console.log(
-        '  New finalRotationDegrees:',
-        finalRotationDegreesCalculated
-      );
-      console.log(
-        '  Animation will go from:',
-        startRotationDegrees,
-        'to:',
-        1440 + finalRotationDegreesCalculated
-      );
-
       // Set final rotation and generate new classKey
       setFinalRotationDegrees(finalRotationDegreesCalculated);
       setClassKey(makeClassKey(5));
@@ -323,12 +310,6 @@ export const Wheel = ({
       // This ensures next spin always starts from a "small" angle
       setTimeout(() => {
         const normalizedDegrees = ((finalAnimationDegrees % 360) + 360) % 360;
-        console.log(
-          'Normalizing rotation from',
-          finalAnimationDegrees,
-          'to',
-          normalizedDegrees
-        );
         setStartRotationDegrees(normalizedDegrees);
       }, 100);
     }

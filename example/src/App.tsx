@@ -125,9 +125,6 @@ const App = () => {
   const [prizeNumber, setPrizeNumber] = useState(0);
   const [reward, setReward] = useState('');
 
-  console.log('reward');
-  console.log(reward);
-
   const handleSpinClick = () => {
     if (!mustSpin) {
       const newPrizeNumber = Math.floor(Math.random() * rewards.length);
