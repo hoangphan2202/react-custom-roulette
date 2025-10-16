@@ -21,13 +21,6 @@ export const getRotationDegrees = (
 
   const prizeRotation = randomDif ? imperfectRotation : perfectRotation;
 
-  console.log({
-    prizeNumber,
-    degreesPerPrize,
-    rotation:
-      degreesPerPrize * (numberOfPrizes - prizeNumber) - initialRotation,
-  });
-
   return numberOfPrizes - prizeNumber > numberOfPrizes / 2
     ? -360 + prizeRotation
     : prizeRotation;

@@ -9,11 +9,6 @@ export var getRotationDegrees = function (prizeNumber, numberOfPrizes, randomDif
         initialRotation +
         randomDifference;
     var prizeRotation = randomDif ? imperfectRotation : perfectRotation;
-    console.log({
-        prizeNumber: prizeNumber,
-        degreesPerPrize: degreesPerPrize,
-        rotation: degreesPerPrize * (numberOfPrizes - prizeNumber) - initialRotation,
-    });
     return numberOfPrizes - prizeNumber > numberOfPrizes / 2
         ? -360 + prizeRotation
         : prizeRotation;
