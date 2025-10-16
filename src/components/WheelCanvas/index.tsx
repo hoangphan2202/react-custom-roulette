@@ -1,4 +1,4 @@
-import React, { createRef, RefObject, useEffect } from 'react';
+import React, { createRef, RefObject, useEffect, useMemo, memo } from 'react';
 
 import { WheelCanvasStyle } from './styles';
 import { WheelData } from '../Wheel/types';
@@ -86,7 +86,9 @@ const drawWheel = (
   const canvas = canvasRef.current;
   if (canvas?.getContext('2d')) {
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    ctx.clearRect(0, 0, 500, 500);
+
+    // Clear canvas efficiently
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = 'transparent';
     ctx.lineWidth = 0;
 
@@ -121,82 +123,9 @@ const drawWheel = (
       ctx.arc(centerX, centerY, insideRadius, endAngle, startAngle, true);
       ctx.closePath();
 
-      if (
-        backgroundImage &&
-        backgroundImage.complete &&
-        backgroundImage.naturalWidth > 0
-      ) {
-        // Verify image is loaded and create pattern
-        try {
-          const pattern = ctx.createPattern(backgroundImage, 'repeat');
-          if (pattern) {
-            ctx.fillStyle = pattern;
-            ctx.fill();
-
-            // Overlay gradient with transparency if both exist
-            if (gradientInfo) {
-              ctx.globalAlpha = 0.7;
-              const segmentCenterAngle = startAngle + arc / 2;
-              const segmentCenterX =
-                centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
-              const segmentCenterY =
-                centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
-
-              ctx.fillStyle = createCanvasGradient(
-                ctx,
-                gradientInfo,
-                segmentCenterX,
-                segmentCenterY,
-                outsideRadius / 2
-              );
-              ctx.fill();
-              ctx.globalAlpha = 1.0;
-            }
-          } else {
-            // Pattern creation failed, use background color
-            if (gradientInfo) {
-              const segmentCenterAngle = startAngle + arc / 2;
-              const segmentCenterX =
-                centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
-              const segmentCenterY =
-                centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
-
-              ctx.fillStyle = createCanvasGradient(
-                ctx,
-                gradientInfo,
-                segmentCenterX,
-                segmentCenterY,
-                outsideRadius / 2
-              );
-            } else {
-              ctx.fillStyle = backgroundColor;
-            }
-            ctx.fill();
-          }
-        } catch (e) {
-          // Error creating pattern, fallback to background color
-          console.warn('Error creating canvas pattern:', e);
-          if (gradientInfo) {
-            const segmentCenterAngle = startAngle + arc / 2;
-            const segmentCenterX =
-              centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
-            const segmentCenterY =
-              centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
-
-            ctx.fillStyle = createCanvasGradient(
-              ctx,
-              gradientInfo,
-              segmentCenterX,
-              segmentCenterY,
-              outsideRadius / 2
-            );
-          } else {
-            ctx.fillStyle = backgroundColor;
-          }
-          ctx.fill();
-        }
-      } else if (gradientInfo) {
-        // Use gradient
+      // Step 1: Always draw backgroundColor or gradient first (base layer)
+      if (gradientInfo) {
+        // Use gradient as base
         const segmentCenterAngle = startAngle + arc / 2;
         const segmentCenterX =
           centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
@@ -211,10 +140,47 @@ const drawWheel = (
           outsideRadius / 2
         );
         ctx.fill();
-      } else {
-        // Use solid color
+      } else if (backgroundColor) {
+        // Use solid color as base
         ctx.fillStyle = backgroundColor;
         ctx.fill();
+      }
+
+      // Step 2: Overlay backgroundImage pattern if exists
+      if (
+        backgroundImage &&
+        backgroundImage.complete &&
+        backgroundImage.naturalWidth > 0
+      ) {
+        try {
+          const pattern = ctx.createPattern(backgroundImage, 'repeat');
+          if (pattern) {
+            // Draw pattern with some transparency to show base color underneath
+            ctx.globalAlpha = 0.5; // Adjust this value (0.3-0.7) for desired effect
+
+            // Re-create the path for the pattern overlay
+            ctx.beginPath();
+            ctx.arc(
+              centerX,
+              centerY,
+              outsideRadius,
+              startAngle,
+              endAngle,
+              false
+            );
+            ctx.arc(centerX, centerY, insideRadius, endAngle, startAngle, true);
+            ctx.closePath();
+
+            ctx.fillStyle = pattern;
+            ctx.fill();
+
+            // Reset alpha
+            ctx.globalAlpha = 1.0;
+          }
+        } catch (e) {
+          // Error creating pattern, just use the base color/gradient already drawn
+          console.warn('Error creating canvas pattern:', e);
+        }
       }
 
       ctx.stroke();
@@ -385,29 +351,73 @@ const WheelCanvas = ({
   textDistance,
 }: WheelCanvasProps): JSX.Element => {
   const canvasRef = createRef<HTMLCanvasElement>();
-  const drawWheelProps = {
-    outerBorderColor,
-    outerBorderWidth,
-    innerRadius,
-    innerBorderColor,
-    innerBorderWidth,
-    radiusLineColor,
-    radiusLineWidth,
-    fontFamily,
-    fontWeight,
-    fontSize,
-    fontStyle,
-    perpendicularText,
-    prizeMap,
-    rouletteUpdater,
-    textDistance,
-  };
+
+  const drawWheelProps = useMemo(
+    () => ({
+      outerBorderColor,
+      outerBorderWidth,
+      innerRadius,
+      innerBorderColor,
+      innerBorderWidth,
+      radiusLineColor,
+      radiusLineWidth,
+      fontFamily,
+      fontWeight,
+      fontSize,
+      fontStyle,
+      perpendicularText,
+      prizeMap,
+      rouletteUpdater,
+      textDistance,
+    }),
+    [
+      outerBorderColor,
+      outerBorderWidth,
+      innerRadius,
+      innerBorderColor,
+      innerBorderWidth,
+      radiusLineColor,
+      radiusLineWidth,
+      fontFamily,
+      fontWeight,
+      fontSize,
+      fontStyle,
+      perpendicularText,
+      prizeMap,
+      rouletteUpdater,
+      textDistance,
+    ]
+  );
 
   useEffect(() => {
-    drawWheel(canvasRef, data, drawWheelProps);
-  }, [canvasRef, data, drawWheelProps, rouletteUpdater]);
+    // Draw immediately without RAF when canvas content changes
+    // RAF can cause flash during state transitions
+    if (canvasRef.current) {
+      drawWheel(canvasRef, data, drawWheelProps);
+    }
+  }, [data, drawWheelProps, rouletteUpdater]);
 
   return <WheelCanvasStyle ref={canvasRef} width={width} height={height} />;
 };
 
-export default WheelCanvas;
+// Memoize to prevent unnecessary re-renders during spinning
+export default memo(WheelCanvas, (prevProps, nextProps) => {
+  // Only re-render if data or rouletteUpdater changes
+  return (
+    prevProps.data === nextProps.data &&
+    prevProps.rouletteUpdater === nextProps.rouletteUpdater &&
+    prevProps.outerBorderColor === nextProps.outerBorderColor &&
+    prevProps.outerBorderWidth === nextProps.outerBorderWidth &&
+    prevProps.innerRadius === nextProps.innerRadius &&
+    prevProps.innerBorderColor === nextProps.innerBorderColor &&
+    prevProps.innerBorderWidth === nextProps.innerBorderWidth &&
+    prevProps.radiusLineColor === nextProps.radiusLineColor &&
+    prevProps.radiusLineWidth === nextProps.radiusLineWidth &&
+    prevProps.fontFamily === nextProps.fontFamily &&
+    prevProps.fontWeight === nextProps.fontWeight &&
+    prevProps.fontSize === nextProps.fontSize &&
+    prevProps.fontStyle === nextProps.fontStyle &&
+    prevProps.perpendicularText === nextProps.perpendicularText &&
+    prevProps.textDistance === nextProps.textDistance
+  );
+});

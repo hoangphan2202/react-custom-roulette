@@ -1,4 +1,4 @@
-import React, { createRef, useEffect } from 'react';
+import React, { createRef, useEffect, useMemo, memo } from 'react';
 import { WheelCanvasStyle } from './styles';
 import { clamp, getQuantity, parseLinearGradient, createCanvasGradient, } from '../../utils';
 var drawRadialBorder = function (ctx, centerX, centerY, insideRadius, outsideRadius, angle) {
@@ -19,7 +19,8 @@ var drawWheel = function (canvasRef, data, drawWheelProps) {
     var canvas = canvasRef.current;
     if (canvas === null || canvas === void 0 ? void 0 : canvas.getContext('2d')) {
         var ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, 500, 500);
+        // Clear canvas efficiently
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = 'transparent';
         ctx.lineWidth = 0;
         var startAngle = 0;
@@ -44,67 +45,44 @@ var drawWheel = function (canvasRef, data, drawWheelProps) {
             ctx.arc(centerX, centerY, outsideRadius, startAngle, endAngle, false);
             ctx.arc(centerX, centerY, insideRadius, endAngle, startAngle, true);
             ctx.closePath();
-            if (backgroundImage &&
-                backgroundImage.complete &&
-                backgroundImage.naturalWidth > 0) {
-                // Verify image is loaded and create pattern
-                try {
-                    var pattern = ctx.createPattern(backgroundImage, 'repeat');
-                    if (pattern) {
-                        ctx.fillStyle = pattern;
-                        ctx.fill();
-                        // Overlay gradient with transparency if both exist
-                        if (gradientInfo) {
-                            ctx.globalAlpha = 0.7;
-                            var segmentCenterAngle = startAngle + arc / 2;
-                            var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
-                            var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
-                            ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
-                            ctx.fill();
-                            ctx.globalAlpha = 1.0;
-                        }
-                    }
-                    else {
-                        // Pattern creation failed, use background color
-                        if (gradientInfo) {
-                            var segmentCenterAngle = startAngle + arc / 2;
-                            var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
-                            var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
-                            ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
-                        }
-                        else {
-                            ctx.fillStyle = backgroundColor;
-                        }
-                        ctx.fill();
-                    }
-                }
-                catch (e) {
-                    // Error creating pattern, fallback to background color
-                    console.warn('Error creating canvas pattern:', e);
-                    if (gradientInfo) {
-                        var segmentCenterAngle = startAngle + arc / 2;
-                        var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
-                        var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
-                        ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
-                    }
-                    else {
-                        ctx.fillStyle = backgroundColor;
-                    }
-                    ctx.fill();
-                }
-            }
-            else if (gradientInfo) {
-                // Use gradient
+            // Step 1: Always draw backgroundColor or gradient first (base layer)
+            if (gradientInfo) {
+                // Use gradient as base
                 var segmentCenterAngle = startAngle + arc / 2;
                 var segmentCenterX = centerX + (outsideRadius / 2) * Math.cos(segmentCenterAngle);
                 var segmentCenterY = centerY + (outsideRadius / 2) * Math.sin(segmentCenterAngle);
                 ctx.fillStyle = createCanvasGradient(ctx, gradientInfo, segmentCenterX, segmentCenterY, outsideRadius / 2);
                 ctx.fill();
             }
-            else {
-                // Use solid color
+            else if (backgroundColor) {
+                // Use solid color as base
                 ctx.fillStyle = backgroundColor;
                 ctx.fill();
+            }
+            // Step 2: Overlay backgroundImage pattern if exists
+            if (backgroundImage &&
+                backgroundImage.complete &&
+                backgroundImage.naturalWidth > 0) {
+                try {
+                    var pattern = ctx.createPattern(backgroundImage, 'repeat');
+                    if (pattern) {
+                        // Draw pattern with some transparency to show base color underneath
+                        ctx.globalAlpha = 0.5; // Adjust this value (0.3-0.7) for desired effect
+                        // Re-create the path for the pattern overlay
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, outsideRadius, startAngle, endAngle, false);
+                        ctx.arc(centerX, centerY, insideRadius, endAngle, startAngle, true);
+                        ctx.closePath();
+                        ctx.fillStyle = pattern;
+                        ctx.fill();
+                        // Reset alpha
+                        ctx.globalAlpha = 1.0;
+                    }
+                }
+                catch (e) {
+                    // Error creating pattern, just use the base color/gradient already drawn
+                    console.warn('Error creating canvas pattern:', e);
+                }
             }
             ctx.stroke();
             ctx.save();
@@ -191,7 +169,7 @@ var drawWheel = function (canvasRef, data, drawWheelProps) {
 var WheelCanvas = function (_a) {
     var width = _a.width, height = _a.height, data = _a.data, outerBorderColor = _a.outerBorderColor, outerBorderWidth = _a.outerBorderWidth, innerRadius = _a.innerRadius, innerBorderColor = _a.innerBorderColor, innerBorderWidth = _a.innerBorderWidth, radiusLineColor = _a.radiusLineColor, radiusLineWidth = _a.radiusLineWidth, fontFamily = _a.fontFamily, fontWeight = _a.fontWeight, fontSize = _a.fontSize, fontStyle = _a.fontStyle, perpendicularText = _a.perpendicularText, prizeMap = _a.prizeMap, rouletteUpdater = _a.rouletteUpdater, textDistance = _a.textDistance;
     var canvasRef = createRef();
-    var drawWheelProps = {
+    var drawWheelProps = useMemo(function () { return ({
         outerBorderColor: outerBorderColor,
         outerBorderWidth: outerBorderWidth,
         innerRadius: innerRadius,
@@ -207,10 +185,48 @@ var WheelCanvas = function (_a) {
         prizeMap: prizeMap,
         rouletteUpdater: rouletteUpdater,
         textDistance: textDistance,
-    };
+    }); }, [
+        outerBorderColor,
+        outerBorderWidth,
+        innerRadius,
+        innerBorderColor,
+        innerBorderWidth,
+        radiusLineColor,
+        radiusLineWidth,
+        fontFamily,
+        fontWeight,
+        fontSize,
+        fontStyle,
+        perpendicularText,
+        prizeMap,
+        rouletteUpdater,
+        textDistance,
+    ]);
     useEffect(function () {
-        drawWheel(canvasRef, data, drawWheelProps);
-    }, [canvasRef, data, drawWheelProps, rouletteUpdater]);
+        // Draw immediately without RAF when canvas content changes
+        // RAF can cause flash during state transitions
+        if (canvasRef.current) {
+            drawWheel(canvasRef, data, drawWheelProps);
+        }
+    }, [data, drawWheelProps, rouletteUpdater]);
     return React.createElement(WheelCanvasStyle, { ref: canvasRef, width: width, height: height });
 };
-export default WheelCanvas;
+// Memoize to prevent unnecessary re-renders during spinning
+export default memo(WheelCanvas, function (prevProps, nextProps) {
+    // Only re-render if data or rouletteUpdater changes
+    return (prevProps.data === nextProps.data &&
+        prevProps.rouletteUpdater === nextProps.rouletteUpdater &&
+        prevProps.outerBorderColor === nextProps.outerBorderColor &&
+        prevProps.outerBorderWidth === nextProps.outerBorderWidth &&
+        prevProps.innerRadius === nextProps.innerRadius &&
+        prevProps.innerBorderColor === nextProps.innerBorderColor &&
+        prevProps.innerBorderWidth === nextProps.innerBorderWidth &&
+        prevProps.radiusLineColor === nextProps.radiusLineColor &&
+        prevProps.radiusLineWidth === nextProps.radiusLineWidth &&
+        prevProps.fontFamily === nextProps.fontFamily &&
+        prevProps.fontWeight === nextProps.fontWeight &&
+        prevProps.fontSize === nextProps.fontSize &&
+        prevProps.fontStyle === nextProps.fontStyle &&
+        prevProps.perpendicularText === nextProps.perpendicularText &&
+        prevProps.textDistance === nextProps.textDistance);
+});

@@ -20,7 +20,7 @@ const rewards = [
     image: { uri: '/rewards2.png' },
     style: {
       backgroundColor: '#8B5CF6',
-      // backgroundImage: { uri: '/bg-star.png' },
+      backgroundImage: { uri: '/bg-star.png' },
       textColor: '#fff',
     },
   },

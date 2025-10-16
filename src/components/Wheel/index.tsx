@@ -106,9 +106,12 @@ export const Wheel = ({
   const [loadedImagesCounter, setLoadedImagesCounter] = useState(0);
   const [totalImages, setTotalImages] = useState(0);
   const [isFontLoaded, setIsFontLoaded] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const mustStopSpinning = useRef<boolean>(false);
-
-  const classKey = makeClassKey(5);
+  const wheelDataRef = useRef<WheelData[]>([]);
+  const rotationContainerRef = useRef<HTMLDivElement>(null);
+  const hasSetInitialRotation = useRef<boolean>(false);
+  const [classKey, setClassKey] = useState(makeClassKey(5));
 
   const normalizedSpinDuration = Math.max(0.01, spinDuration);
 
@@ -125,6 +128,8 @@ export const Wheel = ({
     const dataLength = data?.length || 0;
     const wheelDataAux = [{ option: '', optionSize: 1 }] as WheelData[];
     const fontsToFetch = isCustomFont(fontFamily?.trim()) ? [fontFamily] : [];
+    let imagesToLoad = 0;
+    let imagesLoaded = 0;
 
     for (let i = 0; i < dataLength; i++) {
       let fontArray = data[i]?.style?.fontFamily?.split(',') || [];
@@ -155,62 +160,84 @@ export const Wheel = ({
       for (let j = 0; j < (wheelDataAux[i].optionSize || 1); j++) {
         auxPrizeMap[i][j] = initialMapNum++;
       }
-      if (data[i].image) {
-        setTotalImages(prevCounter => prevCounter + 1);
 
+      if (data[i].image) {
+        imagesToLoad++;
+      }
+      if (data[i].style?.backgroundImage?.uri) {
+        imagesToLoad++;
+      }
+    }
+
+    // Set total images first
+    setTotalImages(imagesToLoad);
+    setLoadedImagesCounter(0);
+
+    const checkAllImagesLoaded = () => {
+      imagesLoaded++;
+      setLoadedImagesCounter(imagesLoaded);
+
+      if (imagesLoaded === imagesToLoad) {
+        // Update wheelData only once when all images are loaded
+        wheelDataRef.current = [...wheelDataAux];
+        setWheelData([...wheelDataAux]);
+        setRouletteUpdater(prev => !prev);
+        setIsInitialLoad(false);
+      }
+    };
+
+    // Load all images
+    for (let i = 0; i < dataLength; i++) {
+      if (data[i].image) {
         const img = new Image();
+        const segmentIndex = i; // Capture current index
         img.src = data[i].image?.uri || '';
         img.onload = () => {
-          img.height = 200 * (data[i].image?.sizeMultiplier || 1);
+          img.height = 200 * (data[segmentIndex].image?.sizeMultiplier || 1);
           img.width = (img.naturalWidth / img.naturalHeight) * img.height;
-          wheelDataAux[i].image = {
-            uri: data[i].image?.uri || '',
-            offsetX: data[i].image?.offsetX || 0,
-            offsetY: data[i].image?.offsetY || 0,
-            landscape: data[i].image?.landscape || false,
-            sizeMultiplier: data[i].image?.sizeMultiplier || 1,
+          wheelDataAux[segmentIndex].image = {
+            uri: data[segmentIndex].image?.uri || '',
+            offsetX: data[segmentIndex].image?.offsetX || 0,
+            offsetY: data[segmentIndex].image?.offsetY || 0,
+            landscape: data[segmentIndex].image?.landscape || false,
+            sizeMultiplier: data[segmentIndex].image?.sizeMultiplier || 1,
             _imageHTML: img,
           };
-          setLoadedImagesCounter(prevCounter => prevCounter + 1);
-          setRouletteUpdater(prevState => !prevState);
+          checkAllImagesLoaded();
         };
         img.onerror = err => {
           console.error(
             'Failed to load content image:',
-            data[i].image?.uri,
+            data[segmentIndex].image?.uri,
             err
           );
-          setLoadedImagesCounter(prevCounter => prevCounter + 1);
-          setRouletteUpdater(prevState => !prevState);
+          checkAllImagesLoaded();
         };
       }
 
       // Load background image if specified
       if (data[i].style?.backgroundImage?.uri) {
-        setTotalImages(prevCounter => prevCounter + 1);
-
         const bgImg = new Image();
-        bgImg.crossOrigin = 'anonymous'; // Enable CORS for webview compatibility
+        const segmentIndex = i; // Capture current index
+        bgImg.crossOrigin = 'anonymous';
         bgImg.src = data[i].style?.backgroundImage?.uri || '';
         bgImg.onload = () => {
-          wheelDataAux[i].style = {
-            ...wheelDataAux[i].style,
+          wheelDataAux[segmentIndex].style = {
+            ...wheelDataAux[segmentIndex].style,
             backgroundImage: {
-              uri: data[i].style?.backgroundImage?.uri || '',
+              uri: data[segmentIndex].style?.backgroundImage?.uri || '',
               _imageHTML: bgImg,
             },
           };
-          setLoadedImagesCounter(prevCounter => prevCounter + 1);
-          setRouletteUpdater(prevState => !prevState);
+          checkAllImagesLoaded();
         };
         bgImg.onerror = err => {
           console.error(
             'Failed to load background image:',
-            data[i].style?.backgroundImage?.uri,
+            data[segmentIndex].style?.backgroundImage?.uri,
             err
           );
-          setLoadedImagesCounter(prevCounter => prevCounter + 1);
-          setRouletteUpdater(prevState => !prevState);
+          checkAllImagesLoaded();
         };
       }
     }
@@ -222,22 +249,28 @@ export const Wheel = ({
             families: Array.from(new Set(fontsToFetch.filter(font => !!font))),
           },
           timeout: 1000,
-          fontactive() {
-            setRouletteUpdater(!rouletteUpdater);
-          },
           active() {
             setIsFontLoaded(true);
-            setRouletteUpdater(!rouletteUpdater);
+          },
+          inactive() {
+            setIsFontLoaded(true);
           },
         });
       } catch (err) {
         console.log('Error loading webfonts:', err);
+        setIsFontLoaded(true);
       }
     } else {
       setIsFontLoaded(true);
     }
 
-    setWheelData([...wheelDataAux]);
+    // If no images to load, set wheel data immediately
+    if (imagesToLoad === 0) {
+      wheelDataRef.current = wheelDataAux;
+      setWheelData([...wheelDataAux]);
+      setIsInitialLoad(false);
+    }
+
     setPrizeMap(auxPrizeMap);
     setStartingOption(startingOptionIndex, auxPrizeMap);
     setIsDataUpdated(true);
@@ -246,7 +279,7 @@ export const Wheel = ({
   useEffect(() => {
     if (mustStartSpinning && !isCurrentlySpinning) {
       setIsCurrentlySpinning(true);
-      startSpinning();
+
       const selectedPrize =
         prizeMap[prizeNumber][
           Math.floor(Math.random() * prizeMap[prizeNumber]?.length)
@@ -255,39 +288,107 @@ export const Wheel = ({
         selectedPrize,
         getQuantity(prizeMap)
       );
+
+      console.log('Starting spin:');
+      console.log('  Current startRotationDegrees:', startRotationDegrees);
+      console.log(
+        '  New finalRotationDegrees:',
+        finalRotationDegreesCalculated
+      );
+      console.log(
+        '  Animation will go from:',
+        startRotationDegrees,
+        'to:',
+        1440 + finalRotationDegreesCalculated
+      );
+
+      // Set final rotation and generate new classKey
       setFinalRotationDegrees(finalRotationDegreesCalculated);
+      setClassKey(makeClassKey(5));
+
+      // Start spinning (which has internal delay to wait for CSS injection)
+      startSpinning();
     }
   }, [mustStartSpinning]);
 
   useEffect(() => {
     if (hasStoppedSpinning) {
+      // Update rotation to match the final animation value
+      // This must match the 'to' value in stopSpin animation
+      const finalAnimationDegrees = 1440 + finalRotationDegrees;
+      setStartRotationDegrees(finalAnimationDegrees);
       setIsCurrentlySpinning(false);
-      setStartRotationDegrees(finalRotationDegrees);
+
+      // After a short delay, normalize to 0-360 to keep animations consistent
+      // This ensures next spin always starts from a "small" angle
+      setTimeout(() => {
+        const normalizedDegrees = ((finalAnimationDegrees % 360) + 360) % 360;
+        console.log(
+          'Normalizing rotation from',
+          finalAnimationDegrees,
+          'to',
+          normalizedDegrees
+        );
+        setStartRotationDegrees(normalizedDegrees);
+      }, 100);
     }
   }, [hasStoppedSpinning]);
 
-  const startSpinning = () => {
-    setHasStartedSpinning(true);
-    setHasStoppedSpinning(false);
-    mustStopSpinning.current = true;
-    setTimeout(() => {
-      if (mustStopSpinning.current) {
-        mustStopSpinning.current = false;
-        setHasStartedSpinning(false);
-        setHasStoppedSpinning(true);
-        onStopSpinning();
+  // Listen to animation end to ensure smooth transition
+  useEffect(() => {
+    const container = rotationContainerRef.current;
+    if (!container) {
+      return undefined;
+    }
+
+    const handleAnimationEnd = (e: AnimationEvent) => {
+      // Only handle the last animation (stopSpin)
+      if (e.animationName.includes('stopSpin')) {
+        // Ensure final rotation matches the animation end value
+        const finalAnimationDegrees = 1440 + finalRotationDegrees;
+        setStartRotationDegrees(finalAnimationDegrees);
       }
-    }, totalSpinningTime);
+    };
+
+    container.addEventListener('animationend', handleAnimationEnd);
+    return () => {
+      container.removeEventListener('animationend', handleAnimationEnd);
+    };
+  }, [finalRotationDegrees]);
+
+  const startSpinning = () => {
+    // Small delay to ensure CSS keyframes are injected with new classKey
+    setTimeout(() => {
+      setHasStartedSpinning(true);
+      setHasStoppedSpinning(false);
+      mustStopSpinning.current = true;
+      setTimeout(() => {
+        if (mustStopSpinning.current) {
+          mustStopSpinning.current = false;
+          // Use requestAnimationFrame to ensure state updates happen after animation completes
+          requestAnimationFrame(() => {
+            setHasStartedSpinning(false);
+            setHasStoppedSpinning(true);
+            // Call onStopSpinning after a small delay to ensure UI is stable
+            setTimeout(() => {
+              onStopSpinning();
+            }, 50);
+          });
+        }
+      }, totalSpinningTime);
+    }, 50);
   };
 
   const setStartingOption = (optionIndex: number, optionMap: number[][]) => {
-    if (startingOptionIndex >= 0) {
+    // Only set starting rotation on initial load, not on every re-render
+    if (startingOptionIndex >= 0 && !hasSetInitialRotation.current) {
       const idx = Math.floor(optionIndex) % optionMap?.length;
       const startingOption =
         optionMap[idx][Math.floor(optionMap[idx]?.length / 2)];
       setStartRotationDegrees(
         getRotationDegrees(startingOption, getQuantity(optionMap), false)
       );
+      hasSetInitialRotation.current = true;
     }
   };
 
@@ -305,13 +406,15 @@ export const Wheel = ({
   return (
     <RouletteContainer
       style={
-        !isFontLoaded ||
-        (totalImages > 0 && loadedImagesCounter !== totalImages)
+        isInitialLoad &&
+        (!isFontLoaded ||
+          (totalImages > 0 && loadedImagesCounter !== totalImages))
           ? { visibility: 'hidden' }
           : {}
       }
     >
       <RotationContainer
+        ref={rotationContainerRef}
         className={getRouletteClass()}
         classKey={classKey}
         startSpinningTime={startSpinningTime}
@@ -321,19 +424,22 @@ export const Wheel = ({
         finalRotationDegrees={finalRotationDegrees}
         disableInitialAnimation={disableInitialAnimation}
       >
-        <img
-          src={backgroundImage}
-          alt="bg"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            zIndex: 1,
-            transform: 'scale(1.15)',
-          }}
-        />
+        {backgroundImage && (
+          <img
+            src={backgroundImage}
+            alt="bg"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              zIndex: 1,
+              transform: 'scale(1.15)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
 
         <WheelCanvas
           width="900"

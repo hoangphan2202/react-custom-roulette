@@ -1,4 +1,4 @@
-/// <reference types="react" />
+import React from 'react';
 import { WheelData } from '../Wheel/types';
 interface WheelCanvasProps extends DrawWheelProps {
     width: string;
@@ -22,5 +22,5 @@ interface DrawWheelProps {
     rouletteUpdater: boolean;
     textDistance: number;
 }
-declare const WheelCanvas: ({ width, height, data, outerBorderColor, outerBorderWidth, innerRadius, innerBorderColor, innerBorderWidth, radiusLineColor, radiusLineWidth, fontFamily, fontWeight, fontSize, fontStyle, perpendicularText, prizeMap, rouletteUpdater, textDistance, }: WheelCanvasProps) => JSX.Element;
-export default WheelCanvas;
+declare const _default: React.MemoExoticComponent<({ width, height, data, outerBorderColor, outerBorderWidth, innerRadius, innerBorderColor, innerBorderWidth, radiusLineColor, radiusLineWidth, fontFamily, fontWeight, fontSize, fontStyle, perpendicularText, prizeMap, rouletteUpdater, textDistance, }: WheelCanvasProps) => JSX.Element>;
+export default _default;
