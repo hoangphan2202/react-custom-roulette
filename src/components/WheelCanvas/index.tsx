@@ -257,8 +257,8 @@ const drawWheel = (
         const segmentWidth =
           2 * Math.PI * contentRadius * (arc / (2 * Math.PI));
         const maxImageSize = Math.min(
-          segmentWidth * 0.6,
-          (outsideRadius - insideRadius) * 0.5
+          segmentWidth * 0.9,
+          (outsideRadius - insideRadius) * 0.8
         );
 
         // Scale image to fit

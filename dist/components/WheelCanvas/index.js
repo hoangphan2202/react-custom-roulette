@@ -120,7 +120,7 @@ var drawWheel = function (canvasRef, data, drawWheelProps) {
                 var img = ((_c = data[i].image) === null || _c === void 0 ? void 0 : _c._imageHTML) || new Image();
                 // Calculate appropriate image size based on segment width
                 var segmentWidth = 2 * Math.PI * contentRadius * (arc / (2 * Math.PI));
-                var maxImageSize = Math.min(segmentWidth * 0.6, (outsideRadius - insideRadius) * 0.5);
+                var maxImageSize = Math.min(segmentWidth * 0.9, (outsideRadius - insideRadius) * 0.8);
                 // Scale image to fit
                 var scale = Math.min(maxImageSize / img.width, maxImageSize / img.height);
                 var scaledWidth = img.width * scale;
